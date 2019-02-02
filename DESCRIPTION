@@ -1,0 +1,23 @@
+Package: repromonkey
+Title: A Reproducibility Chaos Monkey
+Version: 0.0.1
+Authors@R: 
+    person(given = "Garrick",
+           family = "Aden-Buie",
+           role = c("aut", "cre"),
+           email = "garrick@adenbuie.com")
+Description: Repro monkey is a chaos monkey for reproducibility.
+    Invite a little chaos into your R session.
+License: MIT + file LICENSE
+URL: https://github.com/gadenbuie/repromonkey
+BugReports: https://github.com/gadenbuie/repromonkey/issues
+Imports: 
+    later,
+    stats,
+    yesno
+Suggests: 
+    rstudioapi
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
