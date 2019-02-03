@@ -42,11 +42,11 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = FALSE) {
     return(invisible())
   }
   if (!consented && !get_consent()) {
-    cat("\nrepro monkey takes a nap...\n")
+    monkey_did("decided to take a nap")
     return(invisible())
   }
 
-  cat("repro monkey lurks...\n")
+  monkey_did("lurks")
 
   if (is.null(wait)) {
     wait <- stats::rexp(1, 1/(60^2 * 2))
@@ -68,9 +68,9 @@ install_repromonkey <- function() {
 }
 
 monkey_around <- function(chaos = NULL) {
-  actions <- c("restart", "bide", "clearws", "scramble", "taunt", "stash")
+  actions <- c("restart", "clearws", "scramble", "taunt", "stash")
   chaos <- if (is.null(chaos)) sample(c("restart"), 1)
-  cat("repro monkey was heard nearby...\n")
+  monkey_did("was heard nearby")
   delay <- sample(10:20, 1)
   later::later(~ summon_chaos_monkey(chaos), delay)
   repromonkey(delay_self = delay, consented = TRUE)
@@ -83,8 +83,8 @@ summon_chaos_monkey <- function(chaos = "restart") {
     clearws  = monkey_clear_workspace(),
     scramble = monkey_scramble_workspace(),
     stash    = monkey_stash(),
-    taunt    = monkey_bide("*may* have done some tinkering with your code"),
-    monkey_bide("got distracted")
+    taunt    = monkey_did("*may* have done some tinkering with your code"),
+    monkey_did("got distracted")
   )
 }
 
@@ -93,7 +93,7 @@ get_consent <- function() {
   if (is.null(consent)) FALSE else consent
 }
 
-monkey_bide <- function(msg = "bides his time") {
+monkey_did <- function(msg = "bides his time") {
   cat(paste0("repro monkey ", msg, "...\n"))
 }
 
@@ -102,7 +102,7 @@ in_rstudio <- function() {
 }
 
 monkey_clear_workspace <- function() {
-  cat("\nrepro monkey decided to clean up your workspace for you")
+  monkey_did("decided to clean up your workspace for you")
   base::rm(list = base::ls())
 }
 
@@ -110,20 +110,20 @@ monkey_restart <- function() {
   monkey_clear_workspace()
 
   if (in_rstudio()) {
-    cat("\nrepro monkey accidentally unplugged RStudio")
+    monkey_did("accidentally unplugged RStudio")
     proj <- NULL
     if (rstudioapi::hasFun("getActiveProject")) {
       proj <- rstudioapi::getActiveProject()
     }
     if (!is.null(proj)) rstudioapi::openProject(proj) else .rs.restartR()
   } else {
-    cat("\nrepro monkey power cycled your R session")
+    monkey_did("power cycled your R session")
     { system("R"); q("no") }
   }
 }
 
 monkey_scramble_workspace <- function() {
-  if (!length(base::ls(envir = .GlobalEnv))) return(monkey_bide())
+  if (!length(base::ls(envir = .GlobalEnv))) return(monkey_did())
 
   shadow_env <- new.env()
 
@@ -148,15 +148,15 @@ monkey_scramble_workspace <- function() {
     )
   }
 
-  cat("\nrepro monkey played 52-card pickup with your global environment")
+  monkey_did("played 52-card pickup with your global environment")
 }
 
 monkey_stash <- function() {
-  if (!in_rstudio()) monkey_bide("tried to swipe your source code but missed")
+  if (!in_rstudio()) monkey_did("tried to swipe your source code but missed")
 
   open_doc <- rstudioapi::getSourceEditorContext()
   if (open_doc$path != "") {
-    monkey_bide("saw you were hard at work and decided to leave you alone")
+    monkey_did("saw you were hard at work and decided to leave you alone")
   }
 
   .rs.rpc.save_active_document(open_doc$contents, FALSE)
@@ -166,7 +166,7 @@ monkey_stash <- function() {
   f_path <- file.path(f_dir, paste0(f_name, ".R"))
   file.copy(path.expand("~/.active-rstudio-document"), f_path)
   .rs.api.documentClose(open_doc$id, FALSE)
-  monkey_bide("stashed your unsaved code somewhere safe")
+  monkey_did("stashed your unsaved code somewhere safe")
   invisible(f_path)
 }
 
