@@ -41,7 +41,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = FALSE) {
     later::later(~ repromonkey(wait, 0, consented), delay_self)
     return(invisible())
   }
-  if (!consented || !get_consent()) {
+  if (!consented && !get_consent()) {
     cat("\nrepro monkey takes a nap...\n")
     return(invisible())
   }
