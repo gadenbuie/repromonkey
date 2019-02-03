@@ -68,7 +68,7 @@ install_repromonkey <- function() {
 }
 
 monkey_around <- function(chaos = NULL) {
-  actions <- c("restart", "bide", "clearws", "scramble")
+  actions <- c("restart", "bide", "clearws", "scramble", "taunt")
   chaos <- if (is.null(chaos)) sample(c("restart"), 1)
   cat("repro monkey was heard nearby...\n")
   delay <- sample(10:20, 1)
@@ -82,6 +82,7 @@ summon_chaos_monkey <- function(chaos = "restart") {
     restart  = monkey_restart(),
     clearws  = monkey_clear_workspace(),
     scramble = monkey_scramble_workspace(),
+    taunt    = monkey_bide("*may* have done some tinkering with your code"),
     monkey_bide("got distracted")
   )
 }
@@ -92,7 +93,7 @@ get_consent <- function() {
 }
 
 monkey_bide <- function(msg = "bides his time") {
-  cat(paste0("repo monkey ", msg, "...\n"))
+  cat(paste0("repro monkey ", msg, "...\n"))
 }
 
 in_rstudio <- function() {
