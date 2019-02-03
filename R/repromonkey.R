@@ -69,7 +69,7 @@ install_repromonkey <- function() {
 }
 
 monkey_around <- function(chaos = NULL) {
-  actions <- c("restart", "clearws", "scramble", "taunt", "stash")
+  actions <- c("restart", "clearws", "scramble", "taunt", "stash", "detach")
   chaos <- if (is.null(chaos)) sample(c("restart"), 1)
   monkey_did("was heard nearby")
   delay <- sample(10:20, 1)
@@ -84,9 +84,11 @@ summon_chaos_monkey <- function(chaos = "restart") {
     clearws  = monkey_clear_workspace(),
     scramble = monkey_scramble_workspace(),
     stash    = monkey_stash(),
+    detach   = monkey_detach(),
     taunt    = monkey_did("*may* have done some tinkering with your code"),
     monkey_did("got distracted")
   )
+  .repromonkey$last <- chaos
 }
 
 get_consent <- function() {
@@ -168,7 +170,7 @@ monkey_stash <- function() {
   file.copy(path.expand("~/.active-rstudio-document"), f_path)
   .rs.api.documentClose(open_doc$id, FALSE)
   monkey_did("stashed your unsaved code somewhere safe")
-  invisible(f_path)
+  .repromonkey$hint <- f_path
 }
 
 get_directories <- function(base_dir = getwd(), recursive = TRUE) {
@@ -181,4 +183,58 @@ get_directories <- function(base_dir = getwd(), recursive = TRUE) {
   file_info <- do.call("rbind", file_info)
   dirs <- file_info[file_info$isdir, ]
   dirs
+}
+
+monkey_detach <- function() {
+  if (!in_rstudio()) {
+    rs <- detach_packages()
+  } else {
+    open_doc <- rstudioapi::getSourceEditorContext()
+    rs <- detach_packages(pkg_ok = called_in_code(open_doc$contents))
+  }
+
+  if (rs == "") {
+    monkey_did("tried to swipe a package from you")
+  } else {
+    monkey_did("stole a package from you")
+  }
+  .repromonkey$hint <- rs
+}
+
+attached_packages <- function() {
+  pkgs <- base::search()
+  pkgs <- pkgs[!grepl("stats|graphics|grDevices|utils|datasets|methods|base|repromonkey", pkgs)]
+  pkgs[grepl("package", pkgs)]
+}
+
+called_in_code <- function(code) {
+  # borrowed from {automagic}: https://github.com/cole-brokamp/automagic/blob/master/R/parse_packages.R
+  code_lib <- regmatches(code, gregexpr('(?<=(library\\()|(library\\(["\']{1}))[[:alnum:]|.]+', code, perl=TRUE))
+
+  code_req <- regmatches(code, gregexpr('(?<=(require\\()|(require\\(["\']{1}))[[:alnum:]|.]+', code, perl=TRUE))
+
+  code_cln <- regmatches(code, gregexpr("[[:alnum:]|.]*(?=:{2,3})", code, perl=TRUE))
+
+  pkgs <- unique(unlist(list(code_lib, code_req, code_cln)))
+  pkgs[pkgs != ""]
+}
+
+detach_packages <- function(pkg_detach = attached_packages(), pkg_ok = NULL) {
+  pkg_ok[!grepl("^package:", pkg_ok)] <- paste0("package:", pkg_ok[!grepl("^package:", pkg_ok)])
+  pkg_detach <- pkg_detach[!pkg_detach %in% pkg_ok]
+  if (!length(pkg_detach)) return("")
+  detached_a_package <- FALSE
+  while (length(pkg_detach) > 0 && !detached_a_packge) {
+    pkg <- sample(pkg_detach, 1)
+    detached_a_package <- tryCatch({
+      detach(pkg)
+      TRUE
+    },
+    warning = function(w) TRUE,
+    error = function(e) FALSE)
+    if (!detached_a_package) {
+      pkg_detach <- setdiff(pkg_detach, pkg)
+    }
+  }
+  if (detached_a_package) pkg else ""
 }
