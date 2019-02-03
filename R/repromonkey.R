@@ -53,7 +53,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = FALSE) {
     if (wait > 60^2 * 3) wait <- 3*60^2 - sample(-60:-1, 1)
   }
 
-  later::later(chaosmonkey, wait)
+  later::later(monkey_around, wait)
 }
 
 #' @describeIn repromonkey Provides instructions on how to install repromonkey.
@@ -67,16 +67,16 @@ install_repromonkey <- function() {
       sep = "")
 }
 
-chaosmonkey <- function(chaos = NULL) {
+monkey_around <- function(chaos = NULL) {
   actions <- c("restart", "bide", "clearws", "scramble")
   chaos <- if (is.null(chaos)) sample(c("restart"), 1)
   cat("repro monkey was heard nearby...\n")
   delay <- sample(10:20, 1)
-  later::later(~ cause_chaos(chaos), delay)
+  later::later(~ summon_chaos_monkey(chaos), delay)
   repromonkey(delay_self = delay, consented = TRUE)
 }
 
-cause_chaos <- function(chaos = "restart") {
+summon_chaos_monkey <- function(chaos = "restart") {
   switch(
     chaos,
     restart  = monkey_restart(),
