@@ -42,7 +42,8 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = FALSE) {
     return(invisible())
   }
   if (!consented && !get_consent()) {
-    monkey_did("decided to take a nap")
+    cat("Cool, ")
+    monkey_did("wanted to take a nap anyway")
     return(invisible())
   }
 
