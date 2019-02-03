@@ -68,7 +68,7 @@ install_repromonkey <- function() {
 }
 
 monkey_around <- function(chaos = NULL) {
-  actions <- c("restart", "bide", "clearws", "scramble", "taunt")
+  actions <- c("restart", "bide", "clearws", "scramble", "taunt", "stash")
   chaos <- if (is.null(chaos)) sample(c("restart"), 1)
   cat("repro monkey was heard nearby...\n")
   delay <- sample(10:20, 1)
@@ -82,6 +82,7 @@ summon_chaos_monkey <- function(chaos = "restart") {
     restart  = monkey_restart(),
     clearws  = monkey_clear_workspace(),
     scramble = monkey_scramble_workspace(),
+    stash    = monkey_stash(),
     taunt    = monkey_bide("*may* have done some tinkering with your code"),
     monkey_bide("got distracted")
   )
@@ -148,4 +149,35 @@ monkey_scramble_workspace <- function() {
   }
 
   cat("\nrepro monkey played 52-card pickup with your global environment")
+}
+
+monkey_stash <- function() {
+  if (!in_rstudio()) monkey_bide("tried to swipe your source code but missed")
+
+  open_doc <- rstudioapi::getSourceEditorContext()
+  if (open_doc$path != "") {
+    monkey_bide("saw you were hard at work and decided to leave you alone")
+  }
+
+  .rs.rpc.save_active_document(open_doc$contents, FALSE)
+  dirs <- get_directories()
+  f_dir <- sample(dirs$path, 1)
+  f_name <- sample(monkey_names, 1)
+  f_path <- file.path(f_dir, paste0(f_name, ".R"))
+  file.copy(path.expand("~/.active-rstudio-document"), f_path)
+  .rs.api.documentClose(open_doc$id, FALSE)
+  monkey_bide("stashed your unsaved code somewhere safe")
+  invisible(f_path)
+}
+
+get_directories <- function(base_dir = getwd(), recursive = TRUE) {
+  files <- dir(path = base_dir, include.dirs = TRUE, full.names = TRUE, recursive = recursive)
+  files <- c(base_dir, files)
+  file_info <- lapply(files, function(x) {
+    fi <- file.info(x)
+    data.frame(path = x, isdir = fi$isdir, stringsAsFactors = FALSE)
+  })
+  file_info <- do.call("rbind", file_info)
+  dirs <- file_info[file_info$isdir, ]
+  dirs
 }

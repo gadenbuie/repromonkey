@@ -32,6 +32,8 @@ The repro monkey may (with 10-30 seconds of warning):
 
 - Restart your R session
 
+- Stash and close your `Untitled2.R` script somewhere in your project
+
 - Taunt you as you work
 
 ## Add to `.Rprofile`
