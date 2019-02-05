@@ -1,4 +1,4 @@
-# repromonkey
+# repromonkey <img src='man/figures/logo.png' align="right" height="120" />
 
 Repro monkey brings a little chaos to your R session in the name of reproducibility.
 
