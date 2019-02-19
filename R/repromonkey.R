@@ -285,6 +285,7 @@ monkey_stash <- function() {
   if (open_doc$path != "") {
     monkey_did("saw you were hard at work and decided to leave you alone")
     .repromonkey$hint <- ""
+    return(invisible())
   }
 
   .rs.rpc.save_active_document(open_doc$contents, FALSE)
