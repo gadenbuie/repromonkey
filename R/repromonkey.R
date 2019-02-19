@@ -73,7 +73,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
   }
 
   if (is.null(wait)) {
-    wait <- stats::rexp(1, 1/(60^2 * 2))
+    wait <- stats::rexp(1, 1/(60^2 * 1.25))
     if (wait > 60^2 * 3) wait <- 3*60^2 - sample(-60:-1, 1)
   }
 
