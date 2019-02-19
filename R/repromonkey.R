@@ -101,6 +101,10 @@ install_repromonkey <- function() {
 #'   about what just or will happen.
 #' @export
 monkey_hint <- function(reveal = FALSE) {
+  if (isTRUE(.repromonkey$imminent)) {
+    cat("REPRO MONKEY IS ABOUT TO STRIKE!!!\n")
+    return(invisible())
+  }
   ret <- NULL
   seen_once <- !is.null(.repromonkey$last)
   if (seen_once) {
@@ -166,6 +170,7 @@ monkey_around <- function(chaos = NULL, wait = NULL) {
   later::later(~ summon_chaos_monkey(chaos), delay)
   # Repromonkey isn't lurking anymore... it's about to strike!
   .repromonkey$lurks <- NULL
+  .repromonkey$imminent <- TRUE
   # Schedule next repromonkey
   repromonkey(wait = wait, delay_self = delay + 1, consented = TRUE)
 }
@@ -182,6 +187,7 @@ summon_chaos_monkey <- function(chaos = "restart") {
     monkey_did("got distracted")
   )
   .repromonkey$last <- chaos
+  .repromonkey$imminent <- FALSE
 }
 
 get_consent <- function() {
