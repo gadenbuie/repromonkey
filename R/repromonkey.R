@@ -279,7 +279,10 @@ monkey_scramble_workspace <- function() {
 }
 
 monkey_stash <- function() {
-  if (!in_rstudio()) monkey_did("tried to swipe your source code but missed")
+  if (!in_rstudio()) {
+    monkey_did("tried to swipe your source code but missed")
+    return(invisible())
+  }
 
   open_doc <- rstudioapi::getSourceEditorContext()
   if (open_doc$path != "") {
