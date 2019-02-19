@@ -78,7 +78,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
   }
 
   .repromonkey$lurks <- Sys.time() + wait
-  later::later(monkey_around, wait)
+  later::later(function() monkey_around(wait = wait), wait)
 }
 
 #' @describeIn repromonkey Provides instructions on how to automatically
@@ -158,7 +158,7 @@ monkey_hint <- function(reveal = FALSE) {
 # repromonkey Package environment
 .repromonkey <- new.env(parent = emptyenv())
 
-monkey_around <- function(chaos = NULL) {
+monkey_around <- function(chaos = NULL, wait = NULL) {
   actions <- c("restart", "clearws", "scramble", "taunt", "stash", "detach")
   chaos <- if (is.null(chaos)) sample(actions, 1)
   monkey_did("Hey there, how's it going?", monkey = TRUE)
@@ -167,7 +167,7 @@ monkey_around <- function(chaos = NULL) {
   # Repromonkey isn't lurking anymore... it's about to strike!
   .repromonkey$lurks <- NULL
   # Schedule next repromonkey
-  repromonkey(delay_self = delay + 1, consented = TRUE)
+  repromonkey(wait = wait, delay_self = delay + 1, consented = TRUE)
 }
 
 summon_chaos_monkey <- function(chaos = "restart") {
