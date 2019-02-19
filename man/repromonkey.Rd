@@ -3,11 +3,14 @@
 \name{repromonkey}
 \alias{repromonkey}
 \alias{install_repromonkey}
-\title{Summon the Repro Monkey}
+\alias{monkey_hint}
+\title{Repro Monkey}
 \usage{
-repromonkey(wait = NULL, delay_self = 5, consented = FALSE)
+repromonkey(wait = NULL, delay_self = 5, consented = NULL)
 
 install_repromonkey()
+
+monkey_hint(reveal = FALSE)
 }
 \arguments{
 \item{wait}{Set a deterministic wait time in seconds. If \code{NULL}, a random
@@ -19,16 +22,33 @@ monkey will strike within three hours.}
 complete before requesting consent.}
 
 \item{consented}{Have you consented? If \code{TRUE}, no consent will be requested
-prior to summoning the repro monkey.}
+prior to summoning the repro monkey. Defaults to \code{FALSE} or the last
+consent response in the current session.}
+
+\item{reveal}{If \code{FALSE}, repromonkey gives a vague hint about the next
+arrival or last action. If \code{TRUE}, repromonkey gives accurate details
+about what just or will happen.}
 }
 \description{
-Summon the repro monkey to lurk in your workspace. He always asks for
+Summon the repro monkey to lurk in your workspace. It always asks for
 consent first. The easiest way is to add \code{repromonkey} to your
 \code{.Rprofile} so that you'll always be on your toes when working.
 }
 \section{Functions}{
 \itemize{
-\item \code{install_repromonkey}: Provides instructions on how to install repromonkey.
+\item \code{repromonkey}: Summon the repromonkey to lurk in your workspace.
+This function calls the repromonkey, by default scheduling chaos at a
+random time between 0 and 3 hours in the future. This function also
+requests explicitly consent unless otherwise provided during the current
+session. Set \code{delay_self = 0} and \code{consented = TRUE} to immediately
+invite the repromonkey into your workspace.
+
+\item \code{install_repromonkey}: Provides instructions on how to automatically
+summon the repromonkey at session start.
+
+\item \code{monkey_hint}: Get a hint about when the next repromonkey will
+arrive or what chaos the repromonkey brought to you the last time it
+visited.
 }}
 
 \section{Warning}{

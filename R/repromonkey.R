@@ -1,6 +1,6 @@
-#' Summon the Repro Monkey
+#' Repro Monkey
 #'
-#' Summon the repro monkey to lurk in your workspace. He always asks for
+#' Summon the repro monkey to lurk in your workspace. It always asks for
 #' consent first. The easiest way is to add `repromonkey` to your
 #' `.Rprofile` so that you'll always be on your toes when working.
 #'
@@ -26,7 +26,15 @@
 #'
 #' Note that you can also choose to add **repromonkey** to specific projects
 #' using project-specific `.Rprofile` files.
-#'
+#' @name repromonkey
+NULL
+
+#' @describeIn repromonkey Summon the repromonkey to lurk in your workspace.
+#'   This function calls the repromonkey, by default scheduling chaos at a
+#'   random time between 0 and 3 hours in the future. This function also
+#'   requests explicitly consent unless otherwise provided during the current
+#'   session. Set `delay_self = 0` and `consented = TRUE` to immediately
+#'   invite the repromonkey into your workspace.
 #' @param wait Set a deterministic wait time in seconds. If `NULL`, a random
 #'   wait time is selected from an exponential distribution with average wait
 #'   time of 2 hours (but truncated at 3 hours). So by default, the repro
@@ -34,30 +42,47 @@
 #' @param delay_self A wait period of a few seconds to allow startup scripts to
 #'   complete before requesting consent.
 #' @param consented Have you consented? If `TRUE`, no consent will be requested
-#'   prior to summoning the repro monkey.
+#'   prior to summoning the repro monkey. Defaults to `FALSE` or the last
+#'   consent response in the current session.
 #' @export
-repromonkey <- function(wait = NULL, delay_self = 5, consented = FALSE) {
+repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
+  # Bail if there's alaready a monkey around
+  if (!is.null(.repromonkey$lurks)) return(invisible())
+
+  if (is.null(consented)) {
+    consented <- isTRUE(getOption("REPROMONKEY_CONSENTED", FALSE))
+  }
+
   if (delay_self && !consented) {
     later::later(~ repromonkey(wait, 0, consented), delay_self)
     return(invisible())
   }
+
   if (!consented && !get_consent()) {
     cat("Cool, ")
     monkey_did("wanted to take a nap anyway")
     return(invisible())
   }
 
-  monkey_did("lurks")
+  # Show startup message
+  if (!isTRUE(.repromonkey$saw_startup)) {
+    monkey_did("Happy Coding! (I'll be watching you!)", monkey = TRUE)
+    .repromonkey$saw_startup <- TRUE
+  } else {
+    monkey_did("went back to lurking")
+  }
 
   if (is.null(wait)) {
     wait <- stats::rexp(1, 1/(60^2 * 2))
     if (wait > 60^2 * 3) wait <- 3*60^2 - sample(-60:-1, 1)
   }
 
+  .repromonkey$lurks <- Sys.time() + wait
   later::later(monkey_around, wait)
 }
 
-#' @describeIn repromonkey Provides instructions on how to install repromonkey.
+#' @describeIn repromonkey Provides instructions on how to automatically
+#'   summon the repromonkey at session start.
 #' @export
 install_repromonkey <- function() {
   cat("\nTo install repromonkey, open `", path.expand("~/.Rprofile"), "` ",
@@ -68,13 +93,81 @@ install_repromonkey <- function() {
       sep = "")
 }
 
+#' @describeIn repromonkey Get a hint about when the next repromonkey will
+#'   arrive or what chaos the repromonkey brought to you the last time it
+#'   visited.
+#' @param reveal If `FALSE`, repromonkey gives a vague hint about the next
+#'   arrival or last action. If `TRUE`, repromonkey gives accurate details
+#'   about what just or will happen.
+#' @export
+monkey_hint <- function(reveal = FALSE) {
+  ret <- NULL
+  seen_once <- !is.null(.repromonkey$last)
+  if (seen_once) {
+    if (!reveal) {
+      last_action <- switch(
+        .repromonkey$last,
+        restart  = "tried to restart your system",
+        clearws  = "cleared your workspace",
+        scramble = "messed up your workspace a bit",
+        stash    = "stashed unsaved code",
+        detach   = "detached a package",
+        taunt    = "*may* have done some tinkering with your code",
+        "got distracted"
+      )
+    } else {
+      last_action <- switch(
+        .repromonkey$last,
+        restart  = "tried to restart your system",
+        clearws  = "cleared your workspace with a good old-fashioned rm(list = ls())",
+        scramble = "swapped the names of your workspace variables",
+        stash    = if (.repromonkey$hint == "") {
+          "wanted to stash your unsaved code, but you were working in a named file"
+        } else {
+          paste("stashed Untitled.R at", .repromonkey$hint)
+        },
+        detach   = if (.repromonkey$hint == "") {
+          "tried to detach a package but they were all mentioned in your code"
+        } else {
+          paste("detached", paste(.repromonkey$hint, collapse = ", "))
+        },
+        taunt    = "taunted you by pretending to have tinkered with your code",
+        "got distracted"
+      )
+    }
+    if (.repromonkey$last == "scramble" && reveal) {
+      ret <- .repromonkey$hint
+    }
+    monkey_did(last_action)
+  }
+  if (is.null(.repromonkey$lurks)) {
+    monkey_did("is not around")
+    return(invisible())
+  } else {
+    monkey_did(strftime(
+      .repromonkey$lurks + if (reveal) 0 else floor(runif(1, -450, 450)),
+      paste0("is expected ",
+             if (seen_once) "again ",
+             if (reveal) "at" else "around",
+             " %H:%M")
+    ))
+  }
+  if (!is.null(ret)) ret else invisible()
+}
+
+# repromonkey Package environment
+.repromonkey <- new.env(parent = emptyenv())
+
 monkey_around <- function(chaos = NULL) {
   actions <- c("restart", "clearws", "scramble", "taunt", "stash", "detach")
-  chaos <- if (is.null(chaos)) sample(c("restart"), 1)
-  monkey_did("was heard nearby")
+  chaos <- if (is.null(chaos)) sample(actions, 1)
+  monkey_did("Hey there, how's it going?", monkey = TRUE)
   delay <- sample(10:20, 1)
   later::later(~ summon_chaos_monkey(chaos), delay)
-  repromonkey(delay_self = delay, consented = TRUE)
+  # Repromonkey isn't lurking anymore... it's about to strike!
+  .repromonkey$lurks <- NULL
+  # Schedule next repromonkey
+  repromonkey(delay_self = delay + 1, consented = TRUE)
 }
 
 summon_chaos_monkey <- function(chaos = "restart") {
@@ -92,12 +185,41 @@ summon_chaos_monkey <- function(chaos = "restart") {
 }
 
 get_consent <- function() {
-  consent <- yesno::yesno("repro monkey asks: Can you handle a small dose of chaos?")
+  cat(monkey_say("Can you handle a small dose of chaos?"))
+  consent <- yesno::yesno("Enable repromonkey?")
   if (is.null(consent)) FALSE else consent
 }
 
-monkey_did <- function(msg = "bides his time") {
-  cat(paste0("repro monkey ", msg, "...\n"))
+monkey_did <- function(msg = "bides his time", monkey = FALSE) {
+  if (monkey) {
+    cat(monkey_say(msg))
+  } else {
+    cat(paste0("repro monkey ", msg, "...\n"))
+  }
+}
+
+monkey_say <- function(msg = "") {
+  # thanks: https://www.asciiart.eu/animals/monkeys
+  sprintf(
+    '
+ %s
+               \\
+                \\
+                 \\
+                  \\     .="=.
+                      _/.-.-.\\_     _
+                     ( ( o o ) )    ))
+                      |/  "  \\|    //
+      .-------.        \\\'---\'/    //
+     _|~~jgs~~|_       /`"""`\\   ((
+   =(_|_______|_)=    / /_,_\\ \\   \\\\
+     |:::::::::|      \\_\\\\_\'__/ \\  ))
+     |:::::::[]|       /`  /`~\\  |//
+     |o=======.|      /   /    \\  /
+     `"""""""""`  ,--`,--\'\\/\\    /
+                   \'-- "--\'  \'--\'
+', paste(strwrap(msg), collapse = "\n ")
+  )
 }
 
 in_rstudio <- function() {
@@ -151,6 +273,8 @@ monkey_scramble_workspace <- function() {
     )
   }
 
+  .repromonkey$hint <- data.frame(new = unname(vars), old = names(vars),
+                                  stringsAsFactors = FALSE)
   monkey_did("played 52-card pickup with your global environment")
 }
 
@@ -160,6 +284,7 @@ monkey_stash <- function() {
   open_doc <- rstudioapi::getSourceEditorContext()
   if (open_doc$path != "") {
     monkey_did("saw you were hard at work and decided to leave you alone")
+    .repromonkey$hint <- ""
   }
 
   .rs.rpc.save_active_document(open_doc$contents, FALSE)
