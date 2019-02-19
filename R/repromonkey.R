@@ -59,8 +59,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
   }
 
   if (!consented && !get_consent()) {
-    cat("Cool, ")
-    monkey_did("wanted to take a nap anyway")
+    message("Cool, repro monkey wanted to take a nap anyway...")
     return(invisible())
   }
 
@@ -85,7 +84,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
 #'   summon the repromonkey at session start.
 #' @export
 install_repromonkey <- function() {
-  cat("\nTo install repromonkey, open `", path.expand("~/.Rprofile"), "` ",
+  message("\nTo install repromonkey, open `", path.expand("~/.Rprofile"), "` ",
       "and add the following lines:\n\n",
       'if (interactive() && requireNamespace("repromonkey", quietly = TRUE)) {\n',
       "  repromonkey::repromonkey()",
@@ -102,7 +101,7 @@ install_repromonkey <- function() {
 #' @export
 monkey_hint <- function(reveal = FALSE) {
   if (isTRUE(.repromonkey$imminent)) {
-    cat("REPRO MONKEY IS ABOUT TO STRIKE!!!\n")
+    message("REPRO MONKEY IS ABOUT TO STRIKE!!!")
     return(invisible())
   }
   ret <- NULL
@@ -191,16 +190,16 @@ summon_chaos_monkey <- function(chaos = "restart") {
 }
 
 get_consent <- function() {
-  cat(monkey_say("Can you handle a small dose of chaos?"))
+  message(monkey_say("Can you handle a small dose of chaos?"))
   consent <- yesno::yesno("Enable repromonkey?")
   if (is.null(consent)) FALSE else consent
 }
 
 monkey_did <- function(msg = "bides his time", monkey = FALSE) {
   if (monkey) {
-    cat(monkey_say(msg))
+    message(monkey_say(msg))
   } else {
-    cat(paste0("repro monkey ", msg, "...\n"))
+    message(paste0("repro monkey ", msg, "..."))
   }
 }
 
