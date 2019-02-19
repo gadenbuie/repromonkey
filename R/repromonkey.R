@@ -53,7 +53,7 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
     consented <- isTRUE(getOption("REPROMONKEY_CONSENTED", FALSE))
   }
 
-  if (delay_self && !consented) {
+  if (delay_self) {
     later::later(~ repromonkey(wait, 0, consented), delay_self)
     return(invisible())
   }
