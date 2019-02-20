@@ -361,7 +361,7 @@ detach_packages <- function(pkg_detach = attached_packages(), pkg_ok = NULL) {
   while (length(pkg_detach) > 0 && !detached_a_package) {
     pkg <- sample(pkg_detach, 1)
     detached_a_package <- tryCatch({
-      detach(pkg)
+      detach(pkg, unload = TRUE, character.only = TRUE)
       TRUE
     },
     warning = function(w) TRUE,
