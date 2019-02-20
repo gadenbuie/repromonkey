@@ -233,7 +233,7 @@ in_rstudio <- function() {
 
 monkey_clear_workspace <- function() {
   monkey_did("decided to clean up your workspace for you")
-  base::rm(list = base::ls())
+  base::rm(list = base::ls(envir = .GlobalEnv), envir = .GlobalEnv)
 }
 
 monkey_restart <- function() {
