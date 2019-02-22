@@ -1,5 +1,9 @@
 # repromonkey <img src='man/figures/logo.png' align="right" height="120" />
 
+<!-- badges: start -->
+[![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+<!-- badges: end -->
+
 Repro monkey brings a little chaos to your R session in the name of reproducibility.
 
 Summon the repro monkey to lurk in your workspace. He always asks for
