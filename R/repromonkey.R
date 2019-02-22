@@ -33,19 +33,30 @@ NULL
 #'   This function calls the repromonkey, by default scheduling chaos at a
 #'   random time between 0 and 3 hours in the future. This function also
 #'   requests explicitly consent unless otherwise provided during the current
-#'   session. Set `delay_self = 0` and `consented = TRUE` to immediately
-#'   invite the repromonkey into your workspace.
+#'   session. Set `delay_self = 0` and `consented = TRUE` to immediately invite
+#'   the repromonkey into your workspace.
 #' @param wait Set a deterministic wait time in seconds. If `NULL`, a random
 #'   wait time is selected from an exponential distribution with average wait
-#'   time of 2 hours (but truncated at 3 hours). So by default, the repro
-#'   monkey will strike within three hours.
+#'   time of 2 hours (but truncated at 3 hours). So by default, the repro monkey
+#'   will strike within three hours.
 #' @param delay_self A wait period of a few seconds to allow startup scripts to
 #'   complete before requesting consent.
 #' @param consented Have you consented? If `TRUE`, no consent will be requested
-#'   prior to summoning the repro monkey. Defaults to `FALSE` or the last
-#'   consent response in the current session.
+#'   prior to summoning the repromonkey. Defaults to `FALSE` or the last consent
+#'   response in the current session.
+#' @param idle_timeout How often should repromonkey poll your R session history
+#'   to make sure that you're actively working? The default is 15 minutes. If no
+#'   activity is seen between each session poll, the repromonkey will get bored
+#'   and will ignore you. This means you won't come back to your work to find
+#'   that repromonkey messed it up. It doesn't _turn off_ repromonkey, so when
+#'   you're back at work the monkey may come back.
 #' @export
-repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
+repromonkey <- function(
+  wait = NULL,
+  delay_self = 5,
+  consented = NULL,
+  idle_timeout = 900
+) {
   # Bail if there's alaready a monkey around
   if (!is.null(.repromonkey$lurks)) return(invisible())
 
@@ -69,6 +80,10 @@ repromonkey <- function(wait = NULL, delay_self = 5, consented = NULL) {
     .repromonkey$saw_startup <- TRUE
   } else {
     monkey_did("went back to lurking")
+  }
+
+  if (is.null(.repromonkey$history_hash)) {
+    idle_update(idle_timeout)
   }
 
   if (is.null(wait)) {
@@ -162,14 +177,16 @@ monkey_hint <- function(reveal = FALSE) {
 .repromonkey <- new.env(parent = emptyenv())
 
 monkey_around <- function(chaos = NULL, wait = NULL) {
-  actions <- c("restart", "clearws", "scramble", "taunt", "stash", "detach")
-  chaos <- if (is.null(chaos)) sample(actions, 1)
-  monkey_did("Hey there, how's it going?", monkey = TRUE)
   delay <- sample(10:20, 1)
-  later::later(~ summon_chaos_monkey(chaos), delay)
-  # Repromonkey isn't lurking anymore... it's about to strike!
-  .repromonkey$lurks <- NULL
-  .repromonkey$imminent <- TRUE
+  if (!is_session_idle()) {
+    actions <- c("restart", "clearws", "scramble", "taunt", "stash", "detach")
+    chaos <- if (is.null(chaos)) sample(actions, 1)
+    monkey_did("Hey there, how's it going?", monkey = TRUE)
+    later::later(~ summon_chaos_monkey(chaos), delay)
+    # Repromonkey isn't lurking anymore... it's about to strike!
+    .repromonkey$lurks <- NULL
+    .repromonkey$imminent <- TRUE
+  }
   # Schedule next repromonkey
   repromonkey(wait = wait, delay_self = delay + 1, consented = TRUE)
 }

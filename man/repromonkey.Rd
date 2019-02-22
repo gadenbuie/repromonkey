@@ -6,7 +6,8 @@
 \alias{monkey_hint}
 \title{Repro Monkey}
 \usage{
-repromonkey(wait = NULL, delay_self = 5, consented = NULL)
+repromonkey(wait = NULL, delay_self = 5, consented = NULL,
+  idle_timeout = 900)
 
 install_repromonkey()
 
@@ -15,15 +16,22 @@ monkey_hint(reveal = FALSE)
 \arguments{
 \item{wait}{Set a deterministic wait time in seconds. If \code{NULL}, a random
 wait time is selected from an exponential distribution with average wait
-time of 2 hours (but truncated at 3 hours). So by default, the repro
-monkey will strike within three hours.}
+time of 2 hours (but truncated at 3 hours). So by default, the repro monkey
+will strike within three hours.}
 
 \item{delay_self}{A wait period of a few seconds to allow startup scripts to
 complete before requesting consent.}
 
 \item{consented}{Have you consented? If \code{TRUE}, no consent will be requested
-prior to summoning the repro monkey. Defaults to \code{FALSE} or the last
-consent response in the current session.}
+prior to summoning the repromonkey. Defaults to \code{FALSE} or the last consent
+response in the current session.}
+
+\item{idle_timeout}{How often should repromonkey poll your R session history
+to make sure that you're actively working? The default is 15 minutes. If no
+activity is seen between each session poll, the repromonkey will get bored
+and will ignore you. This means you won't come back to your work to find
+that repromonkey messed it up. It doesn't \emph{turn off} repromonkey, so when
+you're back at work the monkey may come back.}
 
 \item{reveal}{If \code{FALSE}, repromonkey gives a vague hint about the next
 arrival or last action. If \code{TRUE}, repromonkey gives accurate details
@@ -40,8 +48,8 @@ consent first. The easiest way is to add \code{repromonkey} to your
 This function calls the repromonkey, by default scheduling chaos at a
 random time between 0 and 3 hours in the future. This function also
 requests explicitly consent unless otherwise provided during the current
-session. Set \code{delay_self = 0} and \code{consented = TRUE} to immediately
-invite the repromonkey into your workspace.
+session. Set \code{delay_self = 0} and \code{consented = TRUE} to immediately invite
+the repromonkey into your workspace.
 
 \item \code{install_repromonkey}: Provides instructions on how to automatically
 summon the repromonkey at session start.
