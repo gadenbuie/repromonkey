@@ -1,6 +1,6 @@
 Package: repromonkey
 Title: A Reproducibility Chaos Monkey
-Version: 0.0.3
+Version: 0.0.4
 Authors@R: 
     person(given = "Garrick",
            family = "Aden-Buie",

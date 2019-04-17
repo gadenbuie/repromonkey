@@ -60,6 +60,8 @@ repromonkey <- function(
   # Bail if there's alaready a monkey around
   if (!is.null(.repromonkey$lurks)) return(invisible())
 
+  if (in_r_package()) return(invisible())
+
   if (is.null(consented)) {
     consented <- isTRUE(getOption("REPROMONKEY_CONSENTED", FALSE))
   }
@@ -246,6 +248,11 @@ monkey_say <- function(msg = "") {
 
 in_rstudio <- function() {
   requireNamespace("rstudioapi", quietly = TRUE) && rstudioapi::isAvailable()
+}
+
+in_r_package <- function(dir = getwd()) {
+  desc_file <- file.path(dir, "DESCRIPTION")
+  file.exists(desc_file) && any(grepl("^Package:", readLines(desc_file)))
 }
 
 monkey_clear_workspace <- function() {
